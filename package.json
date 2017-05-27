@@ -1,0 +1,33 @@
+{
+  "name": "fast-deepclone",
+  "main": "index.js",
+  "version": "0.0.1",
+  "author": "Sebastien Cottinet (https://github.com/scottinet)",
+  "description": "Deep clone an object",
+  "keywords": [
+    "deep clone",
+    "deep",
+    "clone"
+  ],
+  "scripts": {
+    "configure": "node-gyp configure",
+    "build": "node-gyp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/scottinet/fast-deepclone.git"
+  },
+  "dependencies": {
+    "bindings": "^1.2.1",
+    "nan": "^2.4.0"
+  },
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "clone": "^2.1.1",
+    "eslint": "^3.19.0",
+    "lodash": "^4.17.4",
+    "node-gyp": "^3.4.0",
+    "random-object": "^1.3.4"
+  },
+  "license": "MIT"
+}
