@@ -18,23 +18,19 @@ suite
     clone(obj);
   })
   .add('fast-deepclone', () => {
-    deepClone(obj);
+    deepClone(obj, {circular: false});
   })
   .on('cycle', event => {
     console.log(String(event.target));
-  })
-  .on('complete', function () {
-    console.log('Fastest is ' + this.filter('fastest').map('name'));
   });
-
 
 console.log('Cloning empty objects:');
 obj = {};
 suite.run({async: false });
 console.log('===');
 
-console.log('Cloning objects with 50 properties and a depth of 3:');
-obj = randomObject(50, 3);
+console.log('Cloning objects with 10 properties and a depth of 3:');
+obj = randomObject(10, 3);
 suite.run({async: false});
 console.log('===');
 
