@@ -74,14 +74,36 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source) {
           else if (val->IsFloat64Array()) {
             Nan::Set(target, key, v8::Float64Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 8)); 
           }
+          else if (val->IsInt32Array()) {
+            Nan::Set(target, key, v8::Int32Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 4)); 
+          }
           else if (val->IsInt16Array()) {
             Nan::Set(target, key, v8::Int16Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 2)); 
+          }
+          else if (val->IsInt8Array()) {
+            Nan::Set(target, key, v8::Int8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength())); 
+          }
+          else if (val->IsUint32Array()) {
+            Nan::Set(target, key, v8::Uint32Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 4)); 
+          }
+          else if (val->IsUint16Array()) {
+            Nan::Set(target, key, v8::Uint16Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 2)); 
+          }
+          else if (val->IsUint8Array()) {
+            Nan::Set(target, key, v8::Uint8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength())); 
+          }
+          else if (val->IsUint8ClampedArray()) {
+            Nan::Set(target, key, v8::Uint8ClampedArray::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength())); 
           }
           else {
             char *data = static_cast<char*>(bufferView->Buffer()->GetContents().Data()) + bufferView->ByteOffset();
             Nan::Set(target, key, Nan::CopyBuffer(data, bufferView->ByteLength()).ToLocalChecked());
           }
         }
+      }
+      else if (val->IsDate()) {
+        Local<v8::Date> date = Local<v8::Date>::Cast(val);
+        Nan::Set(target, key, Nan::New<v8::Date>(date->ValueOf()).ToLocalChecked());
       }
       else if (isClonable(val)) {
         Nan::Set(target, key, cloneObject(refs, val->ToObject()));
