@@ -37,7 +37,25 @@ bool isClonable(const Local<Value> & obj) {
     );
 }
 
-Local<Object> cloneObject(circularMap & refs, const Local<Object> & source) {
+bool isClonableLight(const Local<Value> & obj) {
+  return obj->IsObject()
+    && !(
+      obj->IsFunction()
+      || obj->IsNativeError()
+      || obj->IsArrayBufferView()
+      || obj->IsBooleanObject()
+      || obj->IsNumberObject()
+      || obj->IsProxy()
+      || obj->IsSharedArrayBuffer()
+      || obj->IsSymbolObject()
+      || obj->IsPromise()
+      || obj->IsWeakMap()
+      || obj->IsWeakSet()
+      || obj->IsStringObject()
+    );
+}
+
+Local<Object> cloneObject(circularMap & refs, const Local<Object> & source, bool copy) {
   int uid = source->GetIdentityHash();
   auto circularReference = refs.find(uid);
 
@@ -59,7 +77,12 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source) {
     const Local<Value> key = keys->Get(i);
     const Local<Value> val = Nan::Get(target, key).ToLocalChecked();
 
-    if (val->IsObject()) {
+    if (!copy) {
+      if (isClonable(val)) {
+        Nan::Set(target, key, cloneObject(refs, val->ToObject(), copy));
+      }
+    }
+    else if (val->IsObject()) {
       if (val->IsRegExp()) {
         Local<RegExp> regexp = Local<RegExp>::Cast(val);
         Nan::Set(target, key, Nan::New<RegExp>(regexp->GetSource(), regexp->GetFlags()).FromMaybe(val));
@@ -91,9 +114,9 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source) {
           }
           else if (val->IsUint8Array()) {
             /*
-              NodeJS Buffer are Uint8Array with little to no way to
+              NodeJS Buffer objects are Uint8Array with little to no way to
               differenciate between these two classes.
-              So in this case we have to copy over the prototype from the
+              So in this case we simply copy over the prototype from the
               source object to the target one
              */
             Local<Value> proto = val->ToObject()->GetPrototype();
@@ -111,8 +134,32 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source) {
         Local<v8::Date> date = Local<v8::Date>::Cast(val);
         Nan::Set(target, key, Nan::New<v8::Date>(date->ValueOf()).ToLocalChecked());
       }
-      else if (isClonable(val)) {
-        Nan::Set(target, key, cloneObject(refs, val->ToObject()));
+      else if (val->IsMap()) {
+        Local<Array> values = Local<v8::Map>::Cast(val)->AsArray();
+        v8::Isolate *isolate = v8::Isolate::GetCurrent();
+        Local<v8::Context> context = isolate->GetCurrentContext();
+        Local<v8::Map> targetMap = v8::Map::New(isolate);
+
+        for(unsigned int i = 0; i < values->Length(); i += 2) {
+          targetMap->Set(context, values->Get(i), values->Get(i+1));
+        }
+
+        Nan::Set(target, key, targetMap);
+      }
+      else if (val->IsSet()) {
+        Local<Array> values = Local<v8::Set>::Cast(val)->AsArray();
+        v8::Isolate *isolate = v8::Isolate::GetCurrent();
+        Local<v8::Context> context = isolate->GetCurrentContext();
+        Local<v8::Set> targetSet = v8::Set::New(isolate);
+
+        for(unsigned int i = 0; i < values->Length(); i++) {
+          targetSet->Add(context, values->Get(i));
+        }
+
+        Nan::Set(target, key, targetSet);
+      }
+      else if (isClonableLight(val)) {
+        Nan::Set(target, key, cloneObject(refs, val->ToObject(), copy));
       }
     }
   }
@@ -128,11 +175,21 @@ NAN_METHOD(deepClone) {
     return;
   }
 
+  bool deepCopy = false;
+
+  if (argc > 0) {
+    Local<Value> optCopy = info[1];
+
+    if (optCopy->IsBoolean()) {
+      deepCopy = optCopy->ToBoolean()->Value();
+    }
+  }
+
   const Local<Value> source = info[0];
 
   if (isClonable(source)) {
     circularMap refs;
-    info.GetReturnValue().Set(cloneObject(refs, source->ToObject()));
+    info.GetReturnValue().Set(cloneObject(refs, source->ToObject(), deepCopy));
   }
   else {
     info.GetReturnValue().Set(source);

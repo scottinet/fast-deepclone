@@ -17,8 +17,11 @@ suite
   .add('clone', () => {
     clone(obj);
   })
-  .add('fast-deepclone', () => {
-    deepClone(obj, {circular: false});
+  .add('fast-deepclone (clone mode)', () => {
+    deepClone(obj);
+  })
+  .add('fast-deepclone (copy mode)', () => {
+    deepClone(obj, true);
   })
   .on('cycle', event => {
     console.log(String(event.target));
