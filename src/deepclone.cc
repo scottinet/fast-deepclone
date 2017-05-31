@@ -112,16 +112,15 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool c
             Nan::Set(target, key, v8::Uint16Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 2)); 
           }
           else if (val->IsUint8Array()) {
+            Local<v8::Uint8Array> arr = v8::Uint8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength());
+
             /*
               NodeJS Buffer objects are Uint8Array with little to no way to
               differenciate between these two classes.
               So in this case we simply copy over the prototype from the
               source object to the target one
              */
-            Local<Value> proto = val->ToObject()->GetPrototype();
-            Local<v8::Uint8Array> arr = v8::Uint8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength());
-
-            arr->SetPrototype(Nan::GetCurrentContext(), proto);
+            arr->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
             Nan::Set(target, key, arr);
           }
           else if (val->IsUint8ClampedArray()) {
