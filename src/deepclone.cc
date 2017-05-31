@@ -2,7 +2,6 @@
 #include <v8.h>
 #include <node.h>
 #include <nan.h>
-#include <iostream>
 
 using v8::Isolate;
 using v8::Local;
