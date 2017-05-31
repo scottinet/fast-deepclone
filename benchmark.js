@@ -5,7 +5,51 @@ const
   _ = require('lodash'),
   clone = require('clone'),
   randomObject = require('random-object').randomObject,
+  crypto = require('crypto'),
   deepClone = require('.');
+
+const testSet = [
+  {name: 'empty objects', content: {}},
+  {name: 'simple POJO objects (10 properties, depth === 3)', content: randomObject(10, 3)},
+  {name: 'large-depth POJO objects (depth === 100)', content: randomObject(100, 100)},
+  {
+    name: 'objects w/ constructors and circular refs', 
+    content: {
+      foo: 'bar',
+      baz: 'qux',
+      obj1: {
+        obj2: {
+          some: 'value'
+        }
+      },
+      nil: null,
+      undef: undefined,
+      arr: [{foo: 'bar'}, 'foo', 'bar', 'baz'],
+      func: (param) => console.log(param),
+      err: new Error('error'),
+      promise: new Promise(() => {}),
+      wmap: new WeakMap(),
+      map: new Map([['foo', 'bar'], ['baz', 'qux']]),
+      set: new Set(['foo', 'bar', 'baz', 'qux']),
+      wset: new WeakSet(),
+      strobj: new String('foobar'),
+      buffer: crypto.randomBytes(26),
+      float32: new Float32Array(crypto.randomBytes(32)),
+      float64: new Float64Array(crypto.randomBytes(14)),
+      int32: new Int32Array(crypto.randomBytes(24)),
+      int16: new Int16Array(crypto.randomBytes(23)),
+      int8: new Int8Array(crypto.randomBytes(12)),
+      uint8: new Uint8Array(crypto.randomBytes(17)),
+      uint8clamped: new Uint8ClampedArray(crypto.randomBytes(15)),
+      date: new Date(),
+      regex: new RegExp('/foobar/g')
+    }
+  }
+];
+
+// Adding circular references to the testSet
+testSet[3].content.obj1.obj2.circular1 = testSet[3].content;
+testSet[3].content.circular2 = testSet[3].content.obj1;
 
 const suite = new Benchmark.Suite;
 let obj;
@@ -27,17 +71,9 @@ suite
     console.log(String(event.target));
   });
 
-console.log('Cloning empty objects:');
-obj = {};
-suite.run({async: false });
-console.log('===');
-
-console.log('Cloning objects with 10 properties and a depth of 3:');
-obj = randomObject(10, 3);
-suite.run({async: false});
-console.log('===');
-
-console.log('Cloning objects with 100 properties and a depth of 100:');
-obj = randomObject(100, 100);
-suite.run({async: false});
-console.log('===');
+for(let i = 0; i < testSet.length; i++) {
+  console.log(`Cloning: ${testSet[i].name}`);
+  obj = testSet[i].content;
+  suite.run({async: false});
+  console.log('===');
+}

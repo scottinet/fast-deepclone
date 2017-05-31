@@ -9,12 +9,10 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 using v8::Array;
-using v8::RegExp;
-using v8::String;
 
 typedef std::unordered_map<int, Local<Object>> circularMap;
 
-bool isClonable(const Local<Value> & obj) {
+bool isClonable(const Local<Value> obj) {
   return obj->IsObject()
     && !(
       obj->IsFunction()
@@ -37,7 +35,7 @@ bool isClonable(const Local<Value> & obj) {
     );
 }
 
-bool isClonableLight(const Local<Value> & obj) {
+bool isClonableLight(const Local<Value> obj) {
   return obj->IsObject()
     && !(
       obj->IsFunction()
@@ -52,10 +50,11 @@ bool isClonableLight(const Local<Value> & obj) {
       || obj->IsWeakMap()
       || obj->IsWeakSet()
       || obj->IsStringObject()
+      || obj->IsExternal()
     );
 }
 
-Local<Object> cloneObject(circularMap & refs, const Local<Object> & source, bool copy) {
+Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool copy) {
   int uid = source->GetIdentityHash();
   auto circularReference = refs.find(uid);
 
@@ -64,7 +63,7 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source, bool
   }
 
   const Local<Object> target = source->Clone();
-  const Local<Array> keys = Nan::GetOwnPropertyNames(source).ToLocalChecked();
+  const Local<Array> keys = Nan::GetOwnPropertyNames(target).ToLocalChecked();
   const unsigned length = keys->Length();
 
   if (length == 0) {
@@ -84,8 +83,8 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> & source, bool
     }
     else if (val->IsObject()) {
       if (val->IsRegExp()) {
-        Local<RegExp> regexp = Local<RegExp>::Cast(val);
-        Nan::Set(target, key, Nan::New<RegExp>(regexp->GetSource(), regexp->GetFlags()).FromMaybe(val));
+        Local<v8::RegExp> regexp = Local<v8::RegExp>::Cast(val);
+        Nan::Set(target, key, Nan::New<v8::RegExp>(regexp->GetSource(), regexp->GetFlags()).FromMaybe(val));
       }
       else if (val->IsArrayBufferView()) {
         Local<v8::ArrayBufferView> bufferView = Local<v8::ArrayBufferView>::Cast(val);
@@ -177,7 +176,7 @@ NAN_METHOD(deepClone) {
 
   bool deepCopy = false;
 
-  if (argc > 0) {
+  if (argc > 1) {
     Local<Value> optCopy = info[1];
 
     if (optCopy->IsBoolean()) {
