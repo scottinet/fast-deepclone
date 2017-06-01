@@ -1,4 +1,4 @@
-//eslint-disable no-console
+/* eslint-disable no-console */
 
 const 
   Benchmark = require('benchmark'),
@@ -32,7 +32,7 @@ const testSet = [
       map: new Map([['foo', 'bar'], ['baz', 'qux']]),
       set: new Set(['foo', 'bar', 'baz', 'qux']),
       wset: new WeakSet(),
-      strobj: new String('foobar'),
+      strobj: new String('foobar'), // eslint-disable-line
       buffer: crypto.randomBytes(26),
       float32: new Float32Array(crypto.randomBytes(32)),
       float64: new Float64Array(crypto.randomBytes(14)),
