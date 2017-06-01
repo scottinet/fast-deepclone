@@ -2,10 +2,23 @@
 
 Fast and safe JSON deep-cloning utility
 
+
+## Behavior
+
+POJOs and arrays are always duplicated. 
+
+Circular references are carried over to the cloned object.
+
+Objects properties and prototypes are ignored.
+
 The resulting duplicated objects keep the same references to the following objects:
 
-* circular references
-* Uncopiable or read-only objects: functions, Error, WeakMap, WeakSet, symbols and object version of scalar values (e.g. BooleanObject)
+* functions
+* native Error objects
+* WeakMap (non-enumerable)
+* WeakSet (non-enumerable)
+* symbols
+* object version of scalar values (e.g. BooleanObject)
 
 This module also allows to either keep references or to duplicate the following objects, depending on the provided options:
 
@@ -16,10 +29,6 @@ This module also allows to either keep references or to duplicate the following 
 * Date 
 * RegExp
 
-
-POJOs and arrays are always duplicated. 
-
-Objects properties and prototypes are ignored.
 
 ## Installation
 
