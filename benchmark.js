@@ -9,11 +9,11 @@ const
   deepClone = require('.');
 
 const testSet = [
-  {name: 'empty objects', content: {}},
-  {name: 'simple POJO objects (10 properties, depth === 3)', content: randomObject(10, 3)},
-  {name: 'large-depth POJO objects (depth === 100)', content: randomObject(100, 100)},
+  {name: 'Empty objects', content: {}},
+  {name: 'Fast POJO objects (5 properties, depth === 3)', content: randomObject(5, 3)},
+  {name: 'Slow POJO objects (100 properties, depth === 100)', content: randomObject(100, 100)},
   {
-    name: 'objects w/ constructors and circular refs', 
+    name: 'Fast objects w/ constructors and circular refs', 
     content: {
       foo: 'bar',
       baz: 'qux',
@@ -72,8 +72,8 @@ suite
   });
 
 for(let i = 0; i < testSet.length; i++) {
-  console.log(`Cloning: ${testSet[i].name}`);
+  console.log(`== ${testSet[i].name}`);
   obj = testSet[i].content;
   suite.run({async: false});
-  console.log('===');
+  console.log('');
 }
