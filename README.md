@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/scottinet/fast-deepclone.svg?branch=master)](https://travis-ci.org/scottinet/fast-deepclone)
+
 # fast-deepclone
 
 Fast and safe JSON deep-cloning utility
