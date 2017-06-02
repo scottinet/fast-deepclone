@@ -45,6 +45,25 @@ describe('deepclone unit tests', () => {
     }
   });
 
+  it('scalar values', () => {
+    const src = {
+      str: 'foobar',
+      int: 123,
+      float: 3.14,
+      bool: false,
+      nil: null,
+      undef: undefined
+    };
+
+    const cloned = deepclone(src);
+
+    assert.deepEqual(src, cloned);
+
+    for (const key of Object.keys(src)) {
+      assert.strictEqual(src[key], cloned[key]);
+    }
+  });
+
   it('clone/copy: Map', () => {
     const src = {
       foo: 'bar',
@@ -272,5 +291,27 @@ describe('deepclone unit tests', () => {
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
     assert.deepEqual(src.baz.toString(), copied.baz.toString());
+  });
+
+  it('clone: uncopiable objects', () => {
+    const src = {
+      wmap: new WeakMap(),
+      wset: new WeakSet(),
+      string: String('foobar'),
+      number: Number(123),
+      boolean: Boolean(true),
+      error: new Error('foobar'),
+      func: () => {},
+      generator: function *gen() {},
+      sym: Symbol()
+    };
+
+    const cloned = deepclone(src);
+
+    assert.deepEqual(src, cloned);
+
+    for (const key of Object.keys(src)) {
+      assert.strictEqual(src[key], cloned[key]);
+    }
   });
 });

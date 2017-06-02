@@ -13,10 +13,11 @@ Objects properties and prototypes are ignored.
 
 The resulting duplicated objects keep the same references to the following objects:
 
-* functions
+* functions and generator functions
 * native Error objects
-* WeakMap (non-enumerable)
-* WeakSet (non-enumerable)
+* WeakMap 
+* WeakSet 
+* Promise
 * symbols
 * object version of scalar values (e.g. BooleanObject)
 
