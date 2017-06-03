@@ -1,7 +1,11 @@
+'use strict';
+
 const 
   assert = require('assert'),
   crypto = require('crypto'),
   deepclone = require('..');
+
+// const NODE_VERSION = process.version.replace(/v([\d]+)\..*/, '$1');
 
 describe('deepclone unit tests', () => {
   it('should clone a POJO object', () => {
@@ -34,7 +38,13 @@ describe('deepclone unit tests', () => {
 
     const target = deepclone(src);
 
-    assert.deepEqual(src, target);
+    /*
+      cannot do a deepEqual on node v5 as it ends up
+      in a stack overflow, looping over the circular
+      references
+     */ 
+    assert.notStrictEqual(src, target);
+    assert.equal(src.foo, target.foo);
     assert.strictEqual(target.bar.baz, target);
     assert.notStrictEqual(target.bar.baz, src);
   });
@@ -80,8 +90,18 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
 
+    // no spread operator in Node v4 :-(
+    assert.equal(src.baz.size, copied.baz.size);
+    const 
+      itsrc = src.baz.entries(),
+      itcopied = src.baz.entries();
+
+    do {
+      itsrc.next();
+      itcopied.next();
+      assert.deepEqual(itsrc.value, itcopied.value);
+    } while (itsrc.value);
   });
 
   it('clone/copy: Set', () => {
@@ -100,7 +120,18 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+
+    // no spread operator in Node v4 :-(
+    assert.equal(src.baz.size, copied.baz.size);
+    const 
+      itsrc = src.baz.entries(),
+      itcopied = src.baz.entries();
+
+    do {
+      itsrc.next();
+      itcopied.next();
+      assert.deepEqual(itsrc.value, itcopied.value);
+    } while (itsrc.value);
   });
 
   it('clone/copy: Buffer', () => {
@@ -119,7 +150,9 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Float64Array', () => {
@@ -138,7 +171,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Float32Array', () => {
@@ -157,7 +191,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Int32Array', () => {
@@ -176,7 +211,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Int16Array', () => {
@@ -195,7 +231,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Int8Array', () => {
@@ -214,7 +251,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Uint8Array', () => {
@@ -233,7 +271,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Uint8ClampedArray', () => {
@@ -252,7 +291,8 @@ describe('deepclone unit tests', () => {
 
     assert.deepEqual(src, copied);
     assert.notStrictEqual(src.baz, copied.baz);
-    assert.deepEqual([...src.baz.entries()], [...copied.baz.entries()]);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
   });
 
   it('clone/copy: Date', () => {

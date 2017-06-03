@@ -21,7 +21,9 @@ bool isClonable(const Local<Value> obj) {
       || obj->IsDate()
       || obj->IsBooleanObject()
       || obj->IsNumberObject()
+#if NODE_MAJOR_VERSION > 5
       || obj->IsProxy()
+#endif
       || obj->IsRegExp()
       || obj->IsSharedArrayBuffer()
       || obj->IsSymbolObject()
@@ -42,7 +44,9 @@ bool isClonableLight(const Local<Value> obj) {
       || obj->IsArrayBufferView()
       || obj->IsBooleanObject()
       || obj->IsNumberObject()
+#if NODE_MAJOR_VERSION > 5
       || obj->IsProxy()
+#endif 
       || obj->IsSharedArrayBuffer()
       || obj->IsSymbolObject()
       || obj->IsPromise()

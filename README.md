@@ -26,7 +26,7 @@ The resulting duplicated objects keep the same references to the following objec
 This module also allows to either keep references or to duplicate the following objects, depending on the provided options:
 
 * Buffer
-* all TypedArrays
+* TypedArrays
 * Map
 * Set
 * Date 
@@ -37,7 +37,7 @@ This module also allows to either keep references or to duplicate the following 
 
 `npm fast-deepclone`
 
-This module can only be used with NodeJS.
+This module can only be used with NodeJS (tested on all major versions from v4 to v8 included).
 
 
 ## How to use
@@ -73,38 +73,40 @@ If you need a deep-cloning tool in browsers, check either [lodash.cloneDeep](htt
 
 Moreover, if all you need to duplicate are POJO objects (i.e. objects containing only objects, arrays or scalar values), and if you are absolutely certain that there is no circular reference in them, then you may want to use `JSON.parse(JSON.stringify(<object_to_clone>))` instead.  
 Duplicating objects using `JSON` functions is way faster. Around 2x to 6x faster than this module, depending on the nature of the duplicated object.  
-This is because these functions are hardcoded within V8 and have access to internal structures, not exposed in the V8 public API. Which is not necessarily a bad thing, but a bit frustrating.
+This is because these functions are hardcoded within V8 and have access to internal structures, not exposed in the V8 public API. Which is not necessarily a bad thing, if a bit frustrating.
 
 
 ## Benchmarks
 
-Obtained by running `node benchmark.js` at the root of the project:
+Obtained by running `node benchmark.js` at the root of the project, using NodeJS v7.10.0:
 
 ```
 == Empty objects
-lodash.cloneDeep x 757,928 ops/sec ±0.36% (91 runs sampled)
-clone x 543,766 ops/sec ±0.61% (95 runs sampled)
-fast-deepclone (clone mode) x 1,918,976 ops/sec ±0.52% (93 runs sampled)
-fast-deepclone (copy mode) x 1,870,139 ops/sec ±0.65% (94 runs sampled)
+lodash.cloneDeep x 1,267,300 ops/sec ±0.94% (87 runs sampled)
+clone x 741,513 ops/sec ±0.58% (94 runs sampled)
+fast-deepclone (clone mode) x 2,732,798 ops/sec ±0.54% (90 runs sampled)
+fast-deepclone (copy mode) x 2,651,307 ops/sec ±0.38% (93 runs sampled)
 
 == Fast POJO objects (5 properties, depth === 3)
-lodash.cloneDeep x 65,058 ops/sec ±0.76% (94 runs sampled)
-clone x 63,001 ops/sec ±0.58% (94 runs sampled)
-fast-deepclone (clone mode) x 75,846 ops/sec ±0.51% (95 runs sampled)
-fast-deepclone (copy mode) x 75,718 ops/sec ±0.56% (95 runs sampled)
+lodash.cloneDeep x 82,981 ops/sec ±0.97% (92 runs sampled)
+clone x 86,903 ops/sec ±0.35% (95 runs sampled)
+fast-deepclone (clone mode) x 96,752 ops/sec ±0.53% (95 runs sampled)
+fast-deepclone (copy mode) x 95,926 ops/sec ±0.61% (96 runs sampled)
 
 == Slow POJO objects (100 properties, depth === 100)
-lodash.cloneDeep x 95.13 ops/sec ±1.49% (69 runs sampled)
-clone x 115 ops/sec ±1.12% (80 runs sampled)
-fast-deepclone (clone mode) x 310 ops/sec ±0.60% (88 runs sampled)
-fast-deepclone (copy mode) x 306 ops/sec ±1.00% (88 runs sampled)
+lodash.cloneDeep x 101 ops/sec ±2.99% (72 runs sampled)
+clone x 111 ops/sec ±2.89% (68 runs sampled)
+fast-deepclone (clone mode) x 367 ops/sec ±0.78% (89 runs sampled)
+fast-deepclone (copy mode) x 357 ops/sec ±0.49% (88 runs sampled)
 
 == Fast objects w/ constructors and circular refs
-lodash.cloneDeep x 4,375 ops/sec ±1.64% (88 runs sampled)
-clone x 7,238 ops/sec ±1.74% (90 runs sampled)
-fast-deepclone (clone mode) x 59,371 ops/sec ±0.40% (94 runs sampled)
-fast-deepclone (copy mode) x 45,069 ops/sec ±0.11% (94 runs sampled)
+lodash.cloneDeep x 7,494 ops/sec ±1.05% (95 runs sampled)
+clone x 7,950 ops/sec ±3.35% (87 runs sampled)
+fast-deepclone (clone mode) x 73,751 ops/sec ±0.44% (93 runs sampled)
+fast-deepclone (copy mode) x 49,588 ops/sec ±0.21% (92 runs sampled)
 ```
+
+Results obtained on fast POJO objects are a bit weird using NodeJS v8.0.0, I'll update the benchmarks once one or more minor versions of NodeJS v8 are released, as I don't think NodeJS v8 is stable yet.
 
 ## License
 
