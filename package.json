@@ -1,7 +1,7 @@
 {
   "name": "fast-deepclone",
   "main": "index.js",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Sebastien Cottinet (https://github.com/scottinet)",
   "description": "Deep clone an object",
   "keywords": [
