@@ -57,15 +57,25 @@ bool isClonableLight(const Local<Value> obj) {
     );
 }
 
-Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool copy) {
-  int uid = source->GetIdentityHash();
-  auto circularReference = refs.find(uid);
-
-  if (circularReference != refs.end()) {
-    return circularReference->second;
+void copyProperties(const Local<Object> source, const Local<Object> target) {
+  const Local<Array> keys = Nan::GetOwnPropertyNames(source).ToLocalChecked();
+  const unsigned length = keys->Length();
+  
+  if (length == 0) {
+    return;
   }
+  
+  for(unsigned i = 0; i < length; i++) {
+    const Local<Value> key = keys->Get(i);
+    const Local<Value> val = Nan::Get(source, key).ToLocalChecked();
+    // TODO: Should we not copy properties that already exist on the target?
+    Nan::Set(target, key, val);
+  }
+}
 
-  const Local<Object> target = source->Clone();
+Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool copy);
+
+Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source, bool copy, const Local<Object> target, int uid) {
   const Local<Array> keys = Nan::GetOwnPropertyNames(target).ToLocalChecked();
   const unsigned length = keys->Length();
 
@@ -119,7 +129,7 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool c
 
             /*
               NodeJS Buffer objects are Uint8Array with little to no way to
-              differenciate between these two classes.
+              differentiate between these two classes.
               So in this case we simply copy over the prototype from the
               source object to the target one
              */
@@ -145,7 +155,9 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool c
           targetMap->Set(context, values->Get(i), values->Get(i+1));
         }
 
-        Nan::Set(target, key, targetMap);
+        targetMap->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
+        copyProperties(val->ToObject(), targetMap->ToObject());
+        Nan::Set(target, key, cloneObjectToTarget(refs, val->ToObject(), copy, targetMap->ToObject(), uid));
       }
       else if (val->IsSet()) {
         Local<Array> values = Local<v8::Set>::Cast(val)->AsArray();
@@ -157,7 +169,9 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool c
           targetSet->Add(context, values->Get(i));
         }
 
-        Nan::Set(target, key, targetSet);
+		targetSet->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
+        copyProperties(val->ToObject(), targetSet->ToObject());
+        Nan::Set(target, key, cloneObjectToTarget(refs, val->ToObject(), copy, targetSet->ToObject(), uid));
       }
       else if (isClonableLight(val)) {
         Nan::Set(target, key, cloneObject(refs, val->ToObject(), copy));
@@ -166,6 +180,18 @@ Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool c
   }
 
   return target;
+}
+
+Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool copy) {
+  int uid = source->GetIdentityHash();
+  auto circularReference = refs.find(uid);
+
+  if (circularReference != refs.end()) {
+    return circularReference->second;
+  }
+
+  const Local<Object> target = source->Clone();
+  return cloneObjectToTarget(refs, source, copy, target, uid);
 }
 
 NAN_METHOD(deepClone) {

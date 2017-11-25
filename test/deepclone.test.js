@@ -104,6 +104,56 @@ describe('deepclone unit tests', () => {
     } while (itsrc.value);
   });
 
+  it('clone/copy: class extending Map', () => {
+    let customMethodWasCalled = false;
+
+    class CustomMap extends Map {
+      constructor(iterable) {
+        super(iterable);
+        this.myCustomProperty = 'someValue';
+      }
+
+      get(key) {
+        customMethodWasCalled = true;
+        return super.get(key);
+      }
+    }
+
+    const src = {
+      foo: 'bar',
+      bar: 123,
+      baz: new CustomMap([[1, 2], [2, 3], [3, 4]])
+    };
+
+    const cloned = deepclone(src);
+
+    assert.deepEqual(src, cloned);
+    assert.strictEqual(src.baz, cloned.baz);
+
+    const copied = deepclone(src, true);
+
+    assert.deepEqual(src, copied);
+    assert.notStrictEqual(src.baz, copied.baz);
+
+    // no spread operator in Node v4 :-(
+    assert.equal(src.baz.size, copied.baz.size);
+    const
+      itsrc = src.baz.entries(),
+      itcopied = src.baz.entries();
+
+    do {
+      itsrc.next();
+      itcopied.next();
+      assert.deepEqual(itsrc.value, itcopied.value);
+    } while (itsrc.value);
+
+    copied.baz.get('anything');
+
+    assert.strictEqual(src.baz.myCustomProperty, copied.baz.myCustomProperty);
+    assert.strictEqual(src.baz.get, copied.baz.get);
+    assert.ok(customMethodWasCalled);
+  });
+
   it('clone/copy: Set', () => {
     const src = {
       foo: 'bar',
@@ -132,6 +182,56 @@ describe('deepclone unit tests', () => {
       itcopied.next();
       assert.deepEqual(itsrc.value, itcopied.value);
     } while (itsrc.value);
+  });
+
+  it('clone/copy: class extending Set', () => {
+    let customMethodWasCalled = false;
+
+    class CustomSet extends Set {
+      constructor(iterable) {
+        super(iterable);
+        this.myCustomProperty = 'someValue';
+      }
+
+      has(key) {
+        customMethodWasCalled = true;
+        return super.has(key);
+      }
+    }
+
+    const src = {
+      foo: 'bar',
+      bar: 123,
+      baz: new CustomSet([1, 2, 3, 4, 5])
+    };
+
+    const cloned = deepclone(src);
+
+    assert.deepEqual(src, cloned);
+    assert.strictEqual(src.baz, cloned.baz);
+
+    const copied = deepclone(src, true);
+
+    assert.deepEqual(src, copied);
+    assert.notStrictEqual(src.baz, copied.baz);
+
+    // no spread operator in Node v4 :-(
+    assert.equal(src.baz.size, copied.baz.size);
+    const
+      itsrc = src.baz.entries(),
+      itcopied = src.baz.entries();
+
+    do {
+      itsrc.next();
+      itcopied.next();
+      assert.deepEqual(itsrc.value, itcopied.value);
+    } while (itsrc.value);
+
+    copied.baz.has('anything');
+
+    assert.strictEqual(src.baz.myCustomProperty, copied.baz.myCustomProperty);
+    assert.strictEqual(src.baz.has, copied.baz.has);
+    assert.ok(customMethodWasCalled);
   });
 
   it('clone/copy: Buffer', () => {
