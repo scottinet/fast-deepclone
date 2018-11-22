@@ -395,6 +395,33 @@ describe('deepclone unit tests', () => {
     assert.deepEqual(src.baz, copied.baz);
   });
 
+  it('clone/copy: DataView', () => {
+    const arrayBuffer = new ArrayBuffer(3);
+    const dataview = new DataView(arrayBuffer);
+
+    const src = {
+      foo: 'bar',
+      bar: 123,
+      baz: arrayBuffer
+    };
+
+    dataview.setInt8(0, 1);
+    dataview.setInt8(1, 2);
+    dataview.setInt8(2, 3);
+
+    const cloned = deepclone(src);
+
+    assert.deepEqual(src, cloned);
+    assert.strictEqual(src.baz, cloned.baz);
+
+    const copied = deepclone(src, true);
+
+    assert.deepEqual(src, copied);
+    assert.notStrictEqual(src.baz, copied.baz);
+    assert.equal(src.baz.length, copied.baz.length);
+    assert.deepEqual(src.baz, copied.baz);
+  });
+
   it('clone/copy: Date', () => {
     const src = {
       foo: 'bar',

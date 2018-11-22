@@ -2,6 +2,7 @@
 #include <v8.h>
 #include <node.h>
 #include <nan.h>
+#include <cstring>
 
 using v8::Isolate;
 using v8::Local;
@@ -142,6 +143,12 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
         else if (val->IsUint8ClampedArray()) {
           Nan::Set(target, key, v8::Uint8ClampedArray::New(targetAB, 0, targetAB->ByteLength()));
         }
+      }
+      else if (val->IsArrayBuffer()) {
+        Local<v8::ArrayBuffer> buffer = Local<v8::ArrayBuffer>::Cast(val);
+        Local<v8::ArrayBuffer> targetAB = v8::ArrayBuffer::New(isolate, buffer->ByteLength());
+        memcpy(targetAB->GetContents().Data(), buffer->GetContents().Data(), buffer->ByteLength());
+        Nan::Set(target, key, targetAB);
       }
       else if (val->IsDate()) {
         Local<v8::Date> date = Local<v8::Date>::Cast(val);
