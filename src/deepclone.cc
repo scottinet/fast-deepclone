@@ -176,7 +176,7 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
           targetSet->Add(context, values->Get(i));
         }
 
-		targetSet->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
+		    targetSet->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
         copyProperties(val->ToObject(), targetSet->ToObject());
         Nan::Set(target, key, cloneObjectToTarget(refs, val->ToObject(), copy, targetSet->ToObject(), uid));
       }
