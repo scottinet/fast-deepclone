@@ -1,6 +1,6 @@
 'use strict';
 
-const 
+const
   assert = require('assert'),
   crypto = require('crypto'),
   deepclone = require('..');
@@ -42,7 +42,7 @@ describe('deepclone unit tests', () => {
       cannot do a deepEqual on node v5 as it ends up
       in a stack overflow, looping over the circular
       references
-     */ 
+     */
     assert.notStrictEqual(src, target);
     assert.equal(src.foo, target.foo);
     assert.strictEqual(target.bar.baz, target);
@@ -93,7 +93,7 @@ describe('deepclone unit tests', () => {
 
     // no spread operator in Node v4 :-(
     assert.equal(src.baz.size, copied.baz.size);
-    const 
+    const
       itsrc = src.baz.entries(),
       itcopied = src.baz.entries();
 
@@ -173,7 +173,7 @@ describe('deepclone unit tests', () => {
 
     // no spread operator in Node v4 :-(
     assert.equal(src.baz.size, copied.baz.size);
-    const 
+    const
       itsrc = src.baz.entries(),
       itcopied = src.baz.entries();
 

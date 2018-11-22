@@ -46,7 +46,7 @@ bool isClonableLight(const Local<Value> obj) {
       || obj->IsNumberObject()
 #if NODE_MAJOR_VERSION > 5
       || obj->IsProxy()
-#endif 
+#endif
       || obj->IsSharedArrayBuffer()
       || obj->IsSymbolObject()
       || obj->IsPromise()
@@ -60,11 +60,11 @@ bool isClonableLight(const Local<Value> obj) {
 void copyProperties(const Local<Object> source, const Local<Object> target) {
   const Local<Array> keys = Nan::GetOwnPropertyNames(source).ToLocalChecked();
   const unsigned length = keys->Length();
-  
+
   if (length == 0) {
     return;
   }
-  
+
   for(unsigned i = 0; i < length; i++) {
     const Local<Value> key = keys->Get(i);
     const Local<Value> val = Nan::Get(source, key).ToLocalChecked();
@@ -76,6 +76,7 @@ void copyProperties(const Local<Object> source, const Local<Object> target) {
 Local<Object> cloneObject(circularMap & refs, const Local<Object> source, bool copy);
 
 Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source, bool copy, const Local<Object> target, int uid) {
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
   const Local<Array> keys = Nan::GetOwnPropertyNames(target).ToLocalChecked();
   const unsigned length = keys->Length();
 
@@ -86,6 +87,7 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
   refs[uid] = target;
 
   for(unsigned i = 0; i < length; i++) {
+
     const Local<Value> key = keys->Get(i);
     const Local<Value> val = Nan::Get(target, key).ToLocalChecked();
 
@@ -101,44 +103,44 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
       }
       else if (val->IsArrayBufferView()) {
         Local<v8::ArrayBufferView> bufferView = Local<v8::ArrayBufferView>::Cast(val);
-        
-        if (bufferView->HasBuffer()) {
-          if (val->IsFloat32Array()) {
-            Nan::Set(target, key, v8::Float32Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 4));
-          }
-          else if (val->IsFloat64Array()) {
-            Nan::Set(target, key, v8::Float64Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 8)); 
-          }
-          else if (val->IsInt32Array()) {
-            Nan::Set(target, key, v8::Int32Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 4)); 
-          }
-          else if (val->IsInt16Array()) {
-            Nan::Set(target, key, v8::Int16Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 2)); 
-          }
-          else if (val->IsInt8Array()) {
-            Nan::Set(target, key, v8::Int8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength())); 
-          }
-          else if (val->IsUint32Array()) {
-            Nan::Set(target, key, v8::Uint32Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 4)); 
-          }
-          else if (val->IsUint16Array()) {
-            Nan::Set(target, key, v8::Uint16Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength() / 2)); 
-          }
-          else if (val->IsUint8Array()) {
-            Local<v8::Uint8Array> arr = v8::Uint8Array::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength());
+        Local<v8::ArrayBuffer> targetAB = v8::ArrayBuffer::New(isolate, bufferView->ByteLength());
+        bufferView->CopyContents(targetAB->GetContents().Data(), bufferView->ByteLength());
 
-            /*
-              NodeJS Buffer objects are Uint8Array with little to no way to
-              differentiate between these two classes.
-              So in this case we simply copy over the prototype from the
-              source object to the target one
-             */
-            arr->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
-            Nan::Set(target, key, arr);
-          }
-          else if (val->IsUint8ClampedArray()) {
-            Nan::Set(target, key, v8::Uint8ClampedArray::New(bufferView->Buffer(), bufferView->ByteOffset(), bufferView->ByteLength())); 
-          }
+        if (val->IsFloat32Array()) {
+          Nan::Set(target, key, v8::Float32Array::New(targetAB, 0, targetAB->ByteLength() / 4));
+        }
+        else if (val->IsFloat64Array()) {
+          Nan::Set(target, key, v8::Float64Array::New(targetAB, 0, targetAB->ByteLength() / 8));
+        }
+        else if (val->IsInt32Array()) {
+          Nan::Set(target, key, v8::Int32Array::New(targetAB, 0, targetAB->ByteLength() / 4));
+        }
+        else if (val->IsInt16Array()) {
+          Nan::Set(target, key, v8::Int16Array::New(targetAB, 0, targetAB->ByteLength() / 2));
+        }
+        else if (val->IsInt8Array()) {
+          Nan::Set(target, key, v8::Int8Array::New(targetAB, 0, targetAB->ByteLength()));
+        }
+        else if (val->IsUint32Array()) {
+          Nan::Set(target, key, v8::Uint32Array::New(targetAB, 0, targetAB->ByteLength() / 4));
+        }
+        else if (val->IsUint16Array()) {
+          Nan::Set(target, key, v8::Uint16Array::New(targetAB, 0, targetAB->ByteLength() / 2));
+        }
+        else if (val->IsUint8Array()) {
+          Local<v8::Uint8Array> arr = v8::Uint8Array::New(targetAB, 0, targetAB->ByteLength());
+
+          /*
+            NodeJS Buffer objects are Uint8Array with little to no way to
+            differentiate between these two classes.
+            So in this case we simply copy over the prototype from the
+            source object to the target one
+           */
+          arr->SetPrototype(Nan::GetCurrentContext(), val->ToObject()->GetPrototype());
+          Nan::Set(target, key, arr);
+        }
+        else if (val->IsUint8ClampedArray()) {
+          Nan::Set(target, key, v8::Uint8ClampedArray::New(targetAB, 0, targetAB->ByteLength()));
         }
       }
       else if (val->IsDate()) {
@@ -147,7 +149,6 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
       }
       else if (val->IsMap()) {
         Local<Array> values = Local<v8::Map>::Cast(val)->AsArray();
-        v8::Isolate *isolate = v8::Isolate::GetCurrent();
         Local<v8::Context> context = isolate->GetCurrentContext();
         Local<v8::Map> targetMap = v8::Map::New(isolate);
 
@@ -161,7 +162,6 @@ Local<Object> cloneObjectToTarget(circularMap & refs, const Local<Object> source
       }
       else if (val->IsSet()) {
         Local<Array> values = Local<v8::Set>::Cast(val)->AsArray();
-        v8::Isolate *isolate = v8::Isolate::GetCurrent();
         Local<v8::Context> context = isolate->GetCurrentContext();
         Local<v8::Set> targetSet = v8::Set::New(isolate);
 
