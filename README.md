@@ -35,7 +35,7 @@ This module also allows to either keep references or to duplicate the following 
 
 ## Installation
 
-`npm fast-deepclone`
+`npm i fast-deepclone`
 
 This module can only be used with NodeJS (tested on all major versions from v4 to v8 included).
 
